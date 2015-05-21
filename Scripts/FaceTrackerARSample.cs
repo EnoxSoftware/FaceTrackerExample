@@ -263,7 +263,7 @@ namespace FaceTrackerSample
 
 						while (true) {
 								//If you want to use webcamTexture.width and webcamTexture.height on iOS, you have to wait until webcamTexture.didUpdateThisFrame == 1, otherwise these two values will be equal to 16. (http://forum.unity3d.com/threads/webcamtexture-and-error-0x0502.123922/)
-								#if UNITY_IPHONE && !UNITY_EDITOR
+								#if UNITY_IOS && !UNITY_EDITOR && (UNITY_4_6_3 || UNITY_4_6_4 || UNITY_5_0_0 || UNITY_5_0_1)
 				                if (webCamTexture.width > 16 && webCamTexture.height > 16) {
 								#else
 								if (webCamTexture.didUpdateThisFrame) {
@@ -371,7 +371,7 @@ namespace FaceTrackerSample
 						if (!initDone)
 								return;
 			
-						#if UNITY_IPHONE && !UNITY_EDITOR
+						#if UNITY_IOS && !UNITY_EDITOR && (UNITY_4_6_3 || UNITY_4_6_4 || UNITY_5_0_0 || UNITY_5_0_1)
 				        if (webCamTexture.width > 16 && webCamTexture.height > 16) {
 						#else
 						if (webCamTexture.didUpdateThisFrame) {
@@ -385,11 +385,11 @@ namespace FaceTrackerSample
 												if (webCamTexture.videoRotationAngle == 0) {
 														Core.flip (rgbaMat, rgbaMat, -1);
 												} else if (webCamTexture.videoRotationAngle == 180) {
-									
+														Core.flip (rgbaMat, rgbaMat, 0);
 												}
 										} else {
 												if (webCamTexture.videoRotationAngle == 0) {
-														Core.flip (rgbaMat, rgbaMat, 0);
+														
 												} else if (webCamTexture.videoRotationAngle == 180) {
 														Core.flip (rgbaMat, rgbaMat, 1);
 												}
@@ -403,13 +403,12 @@ namespace FaceTrackerSample
 												}
 										} else {
 												if (webCamTexture.videoRotationAngle == 0) {
-									
+														
 												} else if (webCamTexture.videoRotationAngle == 180) {
 														Core.flip (rgbaMat, rgbaMat, -1);
 												}
 										}
 								}
-
 								//convert image to greyscale
 								Imgproc.cvtColor (rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
 				
@@ -480,7 +479,7 @@ namespace FaceTrackerSample
 
 												bool isRefresh = false;
 
-												if (tvec.get (2, 0) [0] > 0 && tvec.get (2, 0) [0] < 1200 * ((float)webCamTexture.width/(float)width)) {
+												if (tvec.get (2, 0) [0] > 0 && tvec.get (2, 0) [0] < 1200 * ((float)webCamTexture.width / (float)width)) {
 									
 														isRefresh = true;
 					
