@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
-
 using OpenCVForUnity;
-
 using System.Collections.Generic;
 using MiniJSON;
+#if UNITY_WSA
+using UnityEngine.Windows;
+using System.Text;
+#else
+using System.IO;
+#endif
 
 /// <summary>
 /// Face tracker.
@@ -23,10 +27,16 @@ public class FaceTracker
 				points = new List<Point[]> ();
 
 				string jsonText = null;
-				using (System.IO.StreamReader reader = new System.IO.StreamReader(filepath)) {
-						jsonText = reader.ReadToEnd ();
-						reader.Close ();
-				}
+
+
+#if UNITY_WSA
+                var data = File.ReadAllBytes(filepath);
+                jsonText = Encoding.UTF8.GetString(data, 0, data.Length);
+#else
+                jsonText = File.ReadAllText(filepath);
+#endif
+
+
 
 //				TextAsset textAsset = Resources.Load (filename) as TextAsset;
 //				string jsonText = textAsset.text;
@@ -122,11 +132,20 @@ public class FaceTracker
 								return;
 						for (int i = 0; i < smodel.C.rows(); i++) {
 								int j = (int)smodel.C.get (i, 0) [0], k = (int)smodel.C.get (i, 1) [0];
-								Core.line (im, point [j], point [k], con_color, 1);
+#if OPENCV_3
+                                Imgproc.line(im, point[j], point[k], con_color, 1);
+#else
+                                Core.line(im, point[j], point[k], con_color, 1);
+#endif
+                                
 						}
 						for (int i = 0; i < n; i++) {
+#if OPENCV_3
+                                Imgproc.circle(im, point[i], 1, pts_color, 2, Core.LINE_AA, 0);
+#else
 								Core.circle (im, point [i], 1, pts_color, 2, Core.LINE_AA, 0);
-						}
+#endif
+                        }
 				}
 		}
 
