@@ -20,34 +20,25 @@ namespace FaceTrackerSample
 		{
 			
 		}
-		
-		void OnGUI ()
-		{
-			float screenScale = Screen.height / 240.0f;
-			Matrix4x4 scaledMatrix = Matrix4x4.Scale (new Vector3 (screenScale, screenScale, screenScale));
-			GUI.matrix = scaledMatrix;
-			
-			
-			GUILayout.BeginVertical ();
-			
-			if (GUILayout.Button ("Show License")) {
-				Application.LoadLevel ("ShowLicense");
-			}
-			
-			if (GUILayout.Button ("Texture2DFaceTrackerSample")) {
-				Application.LoadLevel ("Texture2DFaceTrackerSample");
-			}
-			
-			if (GUILayout.Button ("WebCamTextureFaceTrackerSample")) {
-				Application.LoadLevel ("WebCamTextureFaceTrackerSample");
-			}
 
-			if (GUILayout.Button ("FaceTrackerARSample")) {
-				Application.LoadLevel ("FaceTrackerARSample");
-			}
-			
-			
-			GUILayout.EndVertical ();
+		public void OnShowLicenseButton ()
+		{
+			Application.LoadLevel ("ShowLicense");
+		}
+		
+		public void OnTexture2DFaceTrackerSample ()
+		{
+			Application.LoadLevel ("Texture2DFaceTrackerSample");
+		}
+		
+		public void OnWebCamTextureFaceTrackerSample ()
+		{
+			Application.LoadLevel ("WebCamTextureFaceTrackerSample");
+		}
+		
+		public void OnFaceTrackerARSample ()
+		{
+			Application.LoadLevel ("FaceTrackerARSample");
 		}
 	}
 }

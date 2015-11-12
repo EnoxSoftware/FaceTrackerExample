@@ -635,47 +635,42 @@ namespace FaceTrackerSample
 						return result;
 				}
 
-				void OnGUI ()
+				public void OnBackButton ()
 				{
-						float screenScale = Screen.height / 240.0f;
-						Matrix4x4 scaledMatrix = Matrix4x4.Scale (new Vector3 (screenScale, screenScale, screenScale));
-						GUI.matrix = scaledMatrix;
-			
-			
-						GUILayout.BeginVertical ();
-						if (GUILayout.Button ("back")) {
-								Application.LoadLevel ("FaceTrackerSample");
-						}
-						if (GUILayout.Button ("change camera")) {
-								shouldUseFrontFacing = !shouldUseFrontFacing;
-								StartCoroutine (init ());
-						}
-
-						if (GUILayout.Button ("drawPoints")) {
-								if (isDrawPoints) {
-										isDrawPoints = false;
-								} else {
-										isDrawPoints = true;
-								}
-						}
-						if (GUILayout.Button ("axes")) {
-								if (axes.activeSelf) {
-										axes.SetActive (false);
-								} else {
-										axes.SetActive (true);
-								}
-						}
-						if (GUILayout.Button ("head")) {
-								if (head.activeSelf) {
-										head.SetActive (false);
-								} else {
-										head.SetActive (true);
-								}
-						}
-						
-			
-						GUILayout.EndVertical ();
+					Application.LoadLevel ("FaceTrackerSample");
+				}
+				
+				public void OnChangeCameraButton ()
+				{
+					shouldUseFrontFacing = !shouldUseFrontFacing;
+					StartCoroutine (init ());
 				}
 
+				public void OnDrawPointsButton ()
+				{
+					if (isDrawPoints) {
+						isDrawPoints = false;
+					} else {
+						isDrawPoints = true;
+					}
+				}
+
+				public void OnDrawAxesButton ()
+				{
+					if (axes.activeSelf) {
+						axes.SetActive (false);
+					} else {
+						axes.SetActive (true);
+					}
+				}
+
+				public void OnDrawHeadButton ()
+				{
+					if (head.activeSelf) {
+						head.SetActive (false);
+					} else {
+						head.SetActive (true);
+					}
+				}
 		}
 }

@@ -143,6 +143,12 @@ namespace FaceTrackerSample
 				                if (webCamTexture.width > 16 && webCamTexture.height > 16) {
 								#else
 								if (webCamTexture.didUpdateThisFrame) {
+										#if UNITY_IOS && !UNITY_EDITOR && UNITY_5_2                                    
+						while (webCamTexture.width <= 16) {
+							webCamTexture.GetPixels32 ();
+							yield return new WaitForEndOfFrame ();
+						} 
+										#endif
 										#endif
 										Debug.Log ("width " + webCamTexture.width + " height " + webCamTexture.height + " fps " + webCamTexture.requestedFPS);
 										Debug.Log ("videoRotationAngle " + webCamTexture.videoRotationAngle + " videoVerticallyMirrored " + webCamTexture.videoVerticallyMirrored + " isFrongFacing " + webCamDevice.isFrontFacing);
@@ -218,13 +224,7 @@ namespace FaceTrackerSample
 				        if (webCamTexture.width > 16 && webCamTexture.height > 16) {
 						#else
 						if (webCamTexture.didUpdateThisFrame) {
-								#if UNITY_IOS && !UNITY_EDITOR && UNITY_5_2                                    
-								while (webCamTexture.width <= 16) {
-										webCamTexture.GetPixels32 ();
-										yield return new WaitForEndOfFrame ();
-								} 
 								#endif
-						#endif
 								Utils.webCamTextureToMat (webCamTexture, rgbaMat, colors);
 
 								//flip to correct direction.
@@ -306,23 +306,15 @@ namespace FaceTrackerSample
 						webCamTexture.Stop ();
 				}
 
-				void OnGUI ()
+				public void OnBackButton ()
 				{
-						float screenScale = Screen.height / 240.0f;
-						Matrix4x4 scaledMatrix = Matrix4x4.Scale (new Vector3 (screenScale, screenScale, screenScale));
-						GUI.matrix = scaledMatrix;
-			
-			
-						GUILayout.BeginVertical ();
-						if (GUILayout.Button ("back")) {
-								Application.LoadLevel ("FaceTrackerSample");
-						}
-						if (GUILayout.Button ("change camera")) {
-								shouldUseFrontFacing = !shouldUseFrontFacing;
-								StartCoroutine (init ());
-						}
-			
-						GUILayout.EndVertical ();
+					Application.LoadLevel ("FaceTrackerSample");
+				}
+				
+				public void OnChangeCameraButton ()
+				{
+					shouldUseFrontFacing = !shouldUseFrontFacing;
+					StartCoroutine (init ());
 				}
 
 		}
