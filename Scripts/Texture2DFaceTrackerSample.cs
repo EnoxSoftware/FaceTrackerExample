@@ -19,15 +19,29 @@ namespace FaceTrackerSample
 				// Use this for initialization
 				void Start ()
 				{
+						gameObject.transform.localScale = new Vector3 (imgTexture.width, imgTexture.height, 1);
+						Debug.Log ("Screen.width " + Screen.width + " Screen.height " + Screen.height + " Screen.orientation " + Screen.orientation);
+			
+						float width = 0;
+						float height = 0;
+			
+						width = gameObject.transform.localScale.x;
+						height = gameObject.transform.localScale.y;
+
+						float widthScale = (float)Screen.width / width;
+						float heightScale = (float)Screen.height / height;
+						if (widthScale < heightScale) {
+								Camera.main.orthographicSize = (width * (float)Screen.height / (float)Screen.width) / 2;
+						} else {
+								Camera.main.orthographicSize = height / 2;
+						}
+
 
 						//initialize FaceTracker
 						FaceTracker faceTracker = new FaceTracker (Utils.getFilePath ("tracker_model.json"));
 						//initialize FaceTrackerParams
 						FaceTrackerParams faceTrackerParams = new FaceTrackerParams ();
-
-
-						gameObject.transform.localScale = new Vector3 (imgTexture.width, imgTexture.height, 1);
-						Camera.main.orthographicSize = imgTexture.height / 2;
+						
 		
 						Mat imgMat = new Mat (imgTexture.height, imgTexture.width, CvType.CV_8UC4);
 		
@@ -68,7 +82,6 @@ namespace FaceTrackerSample
 
 		
 						Texture2D texture = new Texture2D (imgMat.cols (), imgMat.rows (), TextureFormat.RGBA32, false);
-		
 		
 						Utils.matToTexture2D (imgMat, texture);
 		

@@ -21,8 +21,6 @@ namespace FaceTrackerSample
 		{
 			
 		}
-		
-		private Vector2 scrollViewVector = Vector2.zero;
 
 		public void OnBackButton ()
 		{
