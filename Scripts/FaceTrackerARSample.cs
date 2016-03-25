@@ -14,9 +14,24 @@ namespace FaceTrackerSample
 		public class FaceTrackerARSample : MonoBehaviour
 		{
 				/// <summary>
-				/// The is draw points.
+				/// The should draw face points.
 				/// </summary>
-				public bool isDrawPoints;
+				public bool shouldDrawFacePoints;
+
+				/// <summary>
+				/// The should draw axes.
+				/// </summary>
+				public bool shouldDrawAxes;
+
+				/// <summary>
+				/// The should draw head.
+				/// </summary>
+				public bool shouldDrawHead;
+
+				/// <summary>
+				/// The should draw effects.
+				/// </summary>
+				public bool shouldDrawEffects;
 		
 				/// <summary>
 				/// The axes.
@@ -103,9 +118,9 @@ namespace FaceTrackerSample
 				MatOfDouble distCoeffs;
 		
 				/// <summary>
-				/// The look at m.
+				/// The invert Y.
 				/// </summary>
-				Matrix4x4 lookAtM;
+				Matrix4x4 invertYM;
 		
 				/// <summary>
 				/// The transformation m.
@@ -118,9 +133,19 @@ namespace FaceTrackerSample
 				Matrix4x4 invertZM;
 		
 				/// <summary>
-				/// The model view mtrx.
+				/// The ar m.
 				/// </summary>
-				Matrix4x4 modelViewMtrx;
+				Matrix4x4 ARM;
+
+				/// <summary>
+				/// The ar game object.
+				/// </summary>
+				public GameObject ARGameObject;
+
+				/// <summary>
+				/// The should move AR camera.
+				/// </summary>
+				public bool shouldMoveARCamera;
 		
 				/// <summary>
 				/// The object points.
@@ -265,7 +290,7 @@ namespace FaceTrackerSample
 						Debug.Log ("aspectratio " + aspectratio [0]);
 									
 									
-						if (Screen.height > Screen.width) {
+						if (widthScale < heightScale) {
 								ARCamera.fieldOfView = (float)fovx [0];
 						} else {
 								ARCamera.fieldOfView = (float)fovy [0];
@@ -280,21 +305,18 @@ namespace FaceTrackerSample
 									
 									
 									
-						lookAtM = getLookAtMatrix (new Vector3 (0, 0, 0), new Vector3 (0, 0, 1), new Vector3 (0, -1, 0));
-						Debug.Log ("lookAt " + lookAtM.ToString ());
-									
+						invertYM = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1, -1, 1));
+						Debug.Log ("invertYM " + invertYM.ToString ());
+			
 						invertZM = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1, 1, -1));
-
-
+						Debug.Log ("invertZM " + invertZM.ToString ());
+			
+			
 						axes.SetActive (false);
 						head.SetActive (false);
 						rightEye.SetActive (false);
 						leftEye.SetActive (false);
 						mouth.SetActive (false);
-
-
-			
-						
 			
 				}
 		
@@ -364,7 +386,7 @@ namespace FaceTrackerSample
 										
 								//track face points.if face points <= 0, always return false.
 								if (faceTracker.track (grayMat, faceTrackerParams)) {
-										if (isDrawPoints)
+										if (shouldDrawFacePoints)
 												faceTracker.draw (rgbaMat, new Scalar (255, 0, 0, 255), new Scalar (0, 255, 0, 255));
 											
 										#if OPENCV_2
@@ -379,13 +401,13 @@ namespace FaceTrackerSample
 											
 										if (points.Length > 0) {
 												
-												//												for (int i = 0; i < points.Length; i++) {
-												//#if OPENCV_3
-												//                                                  Imgproc.putText(rgbaMat, "" + i, new Point(points[i].x, points[i].y), Core.FONT_HERSHEY_SIMPLEX, 0.3, new Scalar(0, 0, 255, 255), 2, Core.LINE_AA, false);
-												//#else
-												//                                                  Core.putText (rgbaMat, "" + i, new Point (points [i].x, points [i].y), Core.FONT_HERSHEY_SIMPLEX, 0.3, new Scalar (0, 0, 255, 255), 2, Core.LINE_AA, false);
-												//#endif
-												//												}
+//												for (int i = 0; i < points.Length; i++) {
+//														#if OPENCV_2
+//							Core.putText (rgbaMat, "" + i, new Point (points [i].x, points [i].y), Core.FONT_HERSHEY_SIMPLEX, 0.3, new Scalar (0, 0, 255, 255), 2, Core.LINE_AA, false);
+//														#else
+//														Imgproc.putText (rgbaMat, "" + i, new Point (points [i].x, points [i].y), Core.FONT_HERSHEY_SIMPLEX, 0.3, new Scalar (0, 0, 255, 255), 2, Core.LINE_AA, false);
+//														#endif
+//												}
 												
 												
 												imagePoints.fromArray (
@@ -454,21 +476,25 @@ namespace FaceTrackerSample
 												
 												if (isRefresh) {
 													
-														if (!rightEye.activeSelf)
+														if (shouldDrawEffects)
 																rightEye.SetActive (true);
-														if (!leftEye.activeSelf)
+														if (shouldDrawEffects)
 																leftEye.SetActive (true);
+														if (shouldDrawHead)
+																head.SetActive (true);
+														if (shouldDrawAxes)
+																axes.SetActive (true);
 													
 													
 														if ((Mathf.Abs ((float)(points [48].x - points [56].x)) < Mathf.Abs ((float)(points [31].x - points [36].x)) / 2.2 
 																&& Mathf.Abs ((float)(points [51].y - points [57].y)) > Mathf.Abs ((float)(points [31].x - points [36].x)) / 2.9)
 																|| Mathf.Abs ((float)(points [51].y - points [57].y)) > Mathf.Abs ((float)(points [31].x - points [36].x)) / 2.7) {
 														
-																if (!mouth.activeSelf)
+																if (shouldDrawEffects)
 																		mouth.SetActive (true);
 														
 														} else {
-																if (mouth.activeSelf)
+																if (shouldDrawEffects)
 																		mouth.SetActive (false);
 														}
 													
@@ -484,12 +510,22 @@ namespace FaceTrackerSample
 														transformationM.SetRow (2, new Vector4 ((float)rotM.get (2, 0) [0], (float)rotM.get (2, 1) [0], (float)rotM.get (2, 2) [0], (float)tvec.get (2, 0) [0]));
 														transformationM.SetRow (3, new Vector4 (0, 0, 0, 1));
 													
-														modelViewMtrx = lookAtM * transformationM * invertZM;
-													
-														ARCamera.worldToCameraMatrix = modelViewMtrx;
-													
-													
-														//				Debug.Log ("modelViewMtrx " + modelViewMtrx.ToString());
+														if (shouldMoveARCamera) {
+
+																if (ARGameObject != null) {
+																		ARM = ARGameObject.transform.localToWorldMatrix * invertZM * transformationM.inverse * invertYM;
+																		ARUtils.SetTransformFromMatrix (ARCamera.transform, ref ARM);
+																		ARGameObject.SetActive (true);
+																}
+														} else {
+																ARM = ARCamera.transform.localToWorldMatrix * invertYM * transformationM * invertZM;
+
+																if (ARGameObject != null) {
+																		ARUtils.SetTransformFromMatrix (ARGameObject.transform, ref ARM);
+																		ARGameObject.SetActive (true);
+																}
+														}
+
 												}
 										}
 								}
@@ -511,11 +547,11 @@ namespace FaceTrackerSample
 										oldTvec = null;
 								}
 										
-								ARCamera.ResetWorldToCameraMatrix ();
-										
 								rightEye.SetActive (false);
 								leftEye.SetActive (false);
+								head.SetActive (false);
 								mouth.SetActive (false);
+								axes.SetActive (false);
 						}
 					
 				}
@@ -568,47 +604,46 @@ namespace FaceTrackerSample
 						webCamTextureToMatHelper.Init (null, webCamTextureToMatHelper.requestWidth, webCamTextureToMatHelper.requestHeight, !webCamTextureToMatHelper.requestIsFrontFacing);
 				}
 				
-				private Matrix4x4 getLookAtMatrix (Vector3 pos, Vector3 target, Vector3 up)
+				public void OnDrawFacePointsButton ()
 				{
-					
-						Vector3 z = Vector3.Normalize (pos - target);
-						Vector3 x = Vector3.Normalize (Vector3.Cross (up, z));
-						Vector3 y = Vector3.Normalize (Vector3.Cross (z, x));
-					
-						Matrix4x4 result = new Matrix4x4 ();
-						result.SetRow (0, new Vector4 (x.x, x.y, x.z, -(Vector3.Dot (pos, x))));
-						result.SetRow (1, new Vector4 (y.x, y.y, y.z, -(Vector3.Dot (pos, y))));
-						result.SetRow (2, new Vector4 (z.x, z.y, z.z, -(Vector3.Dot (pos, z))));
-						result.SetRow (3, new Vector4 (0, 0, 0, 1));
-					
-						return result;
-				}
-				
-				public void OnDrawPointsButton ()
-				{
-						if (isDrawPoints) {
-								isDrawPoints = false;
+						if (shouldDrawFacePoints) {
+								shouldDrawFacePoints = false;
 						} else {
-								isDrawPoints = true;
+								shouldDrawFacePoints = true;
 						}
 				}
 				
 				public void OnDrawAxesButton ()
 				{
-						if (axes.activeSelf) {
+						if (shouldDrawAxes) {
+								shouldDrawAxes = false;
 								axes.SetActive (false);
 						} else {
-								axes.SetActive (true);
+								shouldDrawAxes = true;
 						}
 				}
 				
 				public void OnDrawHeadButton ()
 				{
-						if (head.activeSelf) {
+						if (shouldDrawHead) {
+								shouldDrawHead = false;
 								head.SetActive (false);
 						} else {
-								head.SetActive (true);
+								shouldDrawHead = true;
 						}
 				}
+
+				public void OnDrawEffectsButton ()
+				{
+						if (shouldDrawEffects) {
+								shouldDrawEffects = false;
+								rightEye.SetActive (false);
+								leftEye.SetActive (false);
+								mouth.SetActive (false);
+						} else {
+								shouldDrawEffects = true;
+						}
+				}
+
 		}
 }
