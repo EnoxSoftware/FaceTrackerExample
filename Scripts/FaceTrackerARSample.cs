@@ -2,6 +2,7 @@
 using System.Collections;
 
 using OpenCVForUnity;
+using OpenCVForUnity.FaceTracker;
 
 namespace FaceTrackerSample
 {
