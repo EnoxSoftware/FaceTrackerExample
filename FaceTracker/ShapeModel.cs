@@ -5,7 +5,7 @@ using System;
 
 using OpenCVForUnity;
 
-namespace OpenCVForUnity.FaceTracker
+namespace OpenCVFaceTracker
 {
 
 /// <summary>

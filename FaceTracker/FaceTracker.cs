@@ -11,7 +11,7 @@ using System.Text;
 using System.IO;
 #endif
 
-namespace OpenCVForUnity.FaceTracker
+namespace OpenCVFaceTracker
 {
 
 /// <summary>

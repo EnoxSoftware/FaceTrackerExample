@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 using OpenCVForUnity;
 
-namespace OpenCVForUnity.FaceTracker
+namespace OpenCVFaceTracker
 {
 
 /// <summary>

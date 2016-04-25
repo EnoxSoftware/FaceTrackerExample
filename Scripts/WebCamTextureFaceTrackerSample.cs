@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+#if UNITY_5_3
+using UnityEngine.SceneManagement;
+#endif
 using OpenCVForUnity;
-using OpenCVForUnity.FaceTracker;
+using OpenCVFaceTracker;
 
 namespace FaceTrackerSample
 {
@@ -199,7 +202,11 @@ namespace FaceTrackerSample
 				/// </summary>
 				public void OnBackButton ()
 				{
+						#if UNITY_5_3
+			SceneManager.LoadScene ("FaceTrackerSample");
+						#else
 						Application.LoadLevel ("FaceTrackerSample");
+						#endif
 				}
 	
 				/// <summary>

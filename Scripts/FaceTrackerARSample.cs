@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+#if UNITY_5_3
+using UnityEngine.SceneManagement;
+#endif
 using OpenCVForUnity;
-using OpenCVForUnity.FaceTracker;
+using OpenCVFaceTracker;
 
 namespace FaceTrackerSample
 {
@@ -149,37 +152,29 @@ namespace FaceTrackerSample
 				public bool shouldMoveARCamera;
 		
 				/// <summary>
-				/// The object points.
+				/// The 3d face object points.
 				/// </summary>
-				MatOfPoint3f objectPoints = new MatOfPoint3f (new Point3 (-31, 72, 86),//l eye
-		                                              new Point3 (31, 72, 86),//r eye
-		                                              new Point3 (0, 40, 114),//nose
-		                                              new Point3 (-23, 19, 76),//l mouse
-		                                              new Point3 (23, 19, 76)//r mouse
-		                                              //		                                              	                                              ,
-		                                              //		                                              	                                              new Point3 (-70, 60, -9),//l ear
-		                                              //		                                              	                                              new Point3 (70, 60, -9)//r ear
-				);
+				MatOfPoint3f objectPoints;
 		
 				/// <summary>
 				/// The image points.
 				/// </summary>
-				MatOfPoint2f imagePoints = new MatOfPoint2f ();
+				MatOfPoint2f imagePoints;
 		
 				/// <summary>
 				/// The rvec.
 				/// </summary>
-				Mat rvec = new Mat ();
+				Mat rvec;
 		
 				/// <summary>
 				/// The tvec.
 				/// </summary>
-				Mat tvec = new Mat ();
+				Mat tvec;
 		
 				/// <summary>
 				/// The rot m.
 				/// </summary>
-				Mat rotM = new Mat (3, 3, CvType.CV_64FC1);
+				Mat rotM;
 		
 				/// <summary>
 				/// The old rvec.
@@ -199,6 +194,21 @@ namespace FaceTrackerSample
 				// Use this for initialization
 				void Start ()
 				{
+						//set 3d face object points.
+						objectPoints = new MatOfPoint3f (new Point3 (-31, 72, 86),//l eye
+			                                              new Point3 (31, 72, 86),//r eye
+			                                              new Point3 (0, 40, 114),//nose
+			                                              new Point3 (-23, 19, 76),//l mouse
+			                                              new Point3 (23, 19, 76)//r mouse
+			                                              //		                                              	                                              ,
+			                                              //		                                              	                                              new Point3 (-70, 60, -9),//l ear
+			                                              //		                                              	                                              new Point3 (70, 60, -9)//r ear
+						);
+						imagePoints = new MatOfPoint2f ();
+						rvec = new Mat ();
+						tvec = new Mat ();
+						rotM = new Mat (3, 3, CvType.CV_64FC1);
+
 						//initialize FaceTracker
 						faceTracker = new FaceTracker (Utils.getFilePath ("tracker_model.json"));
 						//initialize FaceTrackerParams
@@ -570,7 +580,11 @@ namespace FaceTrackerSample
 				/// </summary>
 				public void OnBackButton ()
 				{
+						#if UNITY_5_3
+			SceneManager.LoadScene ("FaceTrackerSample");
+						#else
 						Application.LoadLevel ("FaceTrackerSample");
+						#endif
 				}
 		
 				/// <summary>
