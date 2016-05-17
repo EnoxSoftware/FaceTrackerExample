@@ -84,10 +84,11 @@ namespace OpenCVFaceTracker
 
 						Point[] c = new Point[smodel.C.rows ()];
 						int[] data = new int[c.Length * 2];
-						smodel.C.get (0, 0, data);
+						Utils.copyFromMat<int>(smodel.C, data);
 
-						for (int i = 0; i < c.Length; i++) {
-								c [i] = new Point (data [i * 2 + 0], data [i * 2 + 1]);
+						int len = c.Length;
+						for (int i = 0; i < len; i++) {
+								c [i] = new Point (data [i * 2], data [(i * 2) + 1]);
 						}
 
 						return c;
@@ -117,13 +118,14 @@ namespace OpenCVFaceTracker
 						//initialise
 //				if (!tracking)
 //						points = detector.detect (gray, p.scaleFactor, p.minNeighbours, p.minSize);
-
-						for (int i = 0; i < points.Count; i++) {
+						int count = points.Count;
+						for (int i = 0; i < count; i++) {
 								if (points [i].Length != smodel.npts ())
 										return false;
 			
 								//fit
-								for (int level = 0; level < p.ssize.Count; level++) {
+								int size_count = p.ssize.Count;
+								for (int level = 0; level < size_count; level++) {
 										points [i] = fit (gray, points [i], p.ssize [level], p.robust, p.itol, p.ftol);
 								}
 						}
@@ -134,12 +136,18 @@ namespace OpenCVFaceTracker
 				public void draw (Mat im, Scalar  pts_color, Scalar con_color)
 				{
 
+						int[] smodel_C_int = new int[smodel.C.total()];
+						Utils.copyFromMat<int>(smodel.C, smodel_C_int);
+
 						foreach (var point in points) {
 								int n = point.Length;
 								if (n == 0)
 										return;
-								for (int i = 0; i < smodel.C.rows(); i++) {
-										int j = (int)smodel.C.get (i, 0) [0], k = (int)smodel.C.get (i, 1) [0];
+
+								int rows = smodel.C.rows();
+								int cols = smodel.C.cols();
+								for (int i = 0; i < rows; i++) {
+										int j = smodel_C_int[i * cols], k = smodel_C_int[(i * cols) + 1];
 #if OPENCV_2
 				Core.line(im, point[j], point[k], con_color, 1);
 #else
@@ -181,19 +189,26 @@ namespace OpenCVFaceTracker
 						} else {
 								using (Mat weight = new Mat (n, 1, CvType.CV_32F))
 								using (Mat weight_sort = new Mat (n, 1, CvType.CV_32F)) {
+
+										float[] weight_float = new float[weight.total()];
+										Utils.copyFromMat<float>(weight, weight_float);
+										float[] weight_sort_float = new float[weight_sort.total()];
+
 										Point[] pts_old = pts;
 										for (int iter = 0; iter < itol; iter++) {
 												//compute robust weight
 												for (int i = 0; i < n; i++) {
 														using (MatOfPoint tmpMat = new MatOfPoint (new Point (pts [i].x - peaks [i].x, pts [i].y - peaks [i].y))) {
-																weight.put (i, 0, new float[]{(float)Core.norm (tmpMat)});
+																weight_float[i] = (float)Core.norm(tmpMat);
 														}
 												}
+												Utils.copyToMat(weight_float, weight);
 
 												Core.sort (weight, weight_sort, Core.SORT_EVERY_COLUMN | Core.SORT_ASCENDING);
 
 
-												double var = 1.4826 * (float)weight_sort.get (n / 2, 0) [0];
+												Utils.copyFromMat<float>(weight_sort, weight_sort_float);
+												double var = 1.4826 * weight_sort_float[n / 2];
 
 
 												if (var < 0.1)
@@ -229,7 +244,6 @@ namespace OpenCVFaceTracker
 								}
 						}
 						return pts;
-
 				}
 		}
 }

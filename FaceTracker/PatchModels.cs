@@ -41,20 +41,38 @@ namespace OpenCVFaceTracker
 						using (Mat pt = (new MatOfPoint2f (points)).reshape (1, 2 * n))
 						using (Mat S = calc_simil (pt))
 						using (Mat Si = inv_simil (S)) {
+
+								float[] pt_float = new float[pt.total()];
+								Utils.copyFromMat<float>(pt, pt_float);
+								int pt_cols = pt.cols();
+				
+								float[] S_float = new float[S.total()];
+								Utils.copyFromMat<float>(S, S_float);
+								int S_cols = S.cols();
+				
+								float[] A_float = new float[2 * 3];
+
 								Point[] pts = apply_simil (Si, points);
 
 								for (int i = 0; i < n; i++) {
 
 										OpenCVForUnity.Size wsize = new OpenCVForUnity.Size (ssize.width + patches [i].patch_size ().width, ssize.height + patches [i].patch_size ().height);
 										using (Mat A = new Mat (2, 3, CvType.CV_32F)) {
-												A.put (0, 0, S.get (0, 0) [0]);
-												A.put (0, 1, S.get (0, 1) [0]);
-												A.put (1, 0, S.get (1, 0) [0]);
-												A.put (1, 1, S.get (1, 1) [0]);
-												A.put (0, 2, pt.get (2 * i, 0) [0] - 
-														(A.get (0, 0) [0] * (wsize.width - 1) / 2 + A.get (0, 1) [0] * (wsize.height - 1) / 2));
-												A.put (1, 2, pt.get (2 * i + 1, 0) [0] - 
-														(A.get (1, 0) [0] * (wsize.width - 1) / 2 + A.get (1, 1) [0] * (wsize.height - 1) / 2));
+
+												Utils.copyFromMat<float>(A, A_float);
+												int A_cols = A.cols();
+
+												A_float[0] = S_float[0];
+												A_float[1] = S_float[1];
+												A_float[1 * A_cols] = S_float[1 * S_cols];
+												A_float[(1 * A_cols) + 1] = S_float[(1 * S_cols) + 1];
+												A_float[2] = (float)(pt_float[(2 * pt_cols) * i] -
+						                         			(A_float[0]  * (wsize.width - 1) / 2 + A_float[1] * (wsize.height - 1) / 2));
+												A_float[(1 * A_cols) + 2] = (float)(pt_float[((2 * pt_cols) * i) + 1] -
+						                                    (A_float[1 * A_cols] * (wsize.width - 1) / 2 + A_float[(1 * A_cols) + 1] * (wsize.height - 1) / 2));
+						
+												Utils.copyToMat(A_float, A);
+
 												using (Mat I = new Mat ()) {
 														Imgproc.warpAffine (im, I, A, wsize, Imgproc.INTER_LINEAR + Imgproc.WARP_INVERSE_MAP);
 														using (Mat R = patches [i].calc_response (I, false)) {
@@ -67,32 +85,47 @@ namespace OpenCVFaceTracker
 										}
 
 								}
-
 								return apply_simil (S, pts);
 						}
 				}
 
 				Point[] apply_simil (Mat S, Point[] points)
 				{
+
+						float[] S_float = new float[S.total()];
+						Utils.copyFromMat<float>(S, S_float);
+						int S_cols = S.cols();
+
 						int n = points.Length;
 						Point[] p = new Point[n];
 						for (int i = 0; i < n; i++) {
 								p [i] = new Point ();
-								p [i].x = S.get (0, 0) [0] * points [i].x + S.get (0, 1) [0] * points [i].y + S.get (0, 2) [0];
-								p [i].y = S.get (1, 0) [0] * points [i].x + S.get (1, 1) [0] * points [i].y + S.get (1, 2) [0];
+								p[i].x = S_float[0] * points[i].x + S_float[1] * points[i].y + S_float[2];
+								p[i].y = S_float[1 * S_cols] * points[i].x + S_float[(1 * S_cols) + 1] * points[i].y + S_float[(1 * S_cols) + 2];
 						}
 						return p;
 				}
 
 				Mat inv_simil (Mat S)
 				{
-						Mat Si = new Mat (2, 3, CvType.CV_32F);
-						float d = (float)S.get (0, 0) [0] * (float)S.get (1, 1) [0] - (float)S.get (1, 0) [0] * (float)S.get (0, 1) [0];
 
-						Si.put (0, 0, S.get (1, 1) [0] / d);
-						Si.put (0, 1, -S.get (0, 1) [0] / d);
-						Si.put (1, 1, S.get (0, 0) [0] / d);
-						Si.put (1, 0, -S.get (1, 0) [0] / d);
+						float[] S_float = new float[S.total()];
+						Utils.copyFromMat<float>(S, S_float);
+						int S_cols = S.cols();
+
+						Mat Si = new Mat (2, 3, CvType.CV_32F);
+						float d = S_float[0] * S_float[(1 * S_cols) + 1] - S_float[1 * S_cols] * S_float[1];
+
+						float[] Si_float = new float[Si.total()];
+						Utils.copyFromMat<float>(Si, Si_float);
+						int Si_cols = Si.cols();
+			
+						Si_float[0] = S_float[(1 * S_cols) + 1] / d;
+						Si_float[1] = -S_float[1] / d;
+						Si_float[(1 * Si_cols) + 1] = S_float[0] / d;
+						Si_float[1 * Si_cols] = -S_float[1 * S_cols] / d;
+			
+						Utils.copyToMat(Si_float, Si);
 
 						Mat Ri = new Mat (Si, new OpenCVForUnity.Rect (0, 0, 2, 2));
 
@@ -110,27 +143,44 @@ namespace OpenCVFaceTracker
 
 				Mat calc_simil (Mat pts)
 				{
+						float[] pts_float = new float[pts.total()];
+						Utils.copyFromMat<float>(pts, pts_float);
+						int pts_cols = pts.cols();
+
 						//compute translation
 						int n = pts.rows () / 2;
 						float mx = 0, my = 0;
 						for (int i = 0; i < n; i++) {
-								mx += (float)pts.get (2 * i, 0) [0];
-								my += (float)pts.get (2 * i + 1, 0) [0];
+								mx += pts_float[(2 * pts_cols) * i];
+								my += pts_float[((2 * pts_cols) * i) + 1];
 						}
 						using (Mat p = new Mat (2 * n, 1, CvType.CV_32F)) {
+
+								float[] p_float = new float[p.total()];
+								Utils.copyFromMat<float>(p, p_float);
+								int p_cols = p.cols();
+
 								mx /= n;
 								my /= n;
 								for (int i = 0; i < n; i++) {
-										p.put (2 * i, 0, pts.get (2 * i, 0) [0] - mx);
-										p.put (2 * i + 1, 0, pts.get (2 * i + 1, 0) [0] - my);
+										p_float[(2 * p_cols) * i] = pts_float[(2 * pts_cols) * i] - mx;
+										p_float[((2 * p_cols) * i) + 1] = pts_float[((2 * pts_cols) * i) + 1] - my;
 								}
+								Utils.copyToMat(p_float, p);
+
 								//compute rotation and scale
+								float[] reference_float = new float[reference.total()];
+								Utils.copyFromMat<float>(reference, reference_float);
+								int reference_cols = reference.cols();
+
 								float a = 0, b = 0, c = 0;
 								for (int i = 0; i < n; i++) {
-										a += (float)reference.get (2 * i, 0) [0] * (float)reference.get (2 * i, 0) [0] + 
-												(float)reference.get (2 * i + 1, 0) [0] * (float)reference.get (2 * i + 1, 0) [0];
-										b += (float)reference.get (2 * i, 0) [0] * (float)p.get (2 * i, 0) [0] + (float)reference.get (2 * i + 1, 0) [0] * (float)p.get (2 * i + 1, 0) [0];
-										c += (float)reference.get (2 * i, 0) [0] * (float)p.get (2 * i + 1, 0) [0] - (float)reference.get (2 * i + 1, 0) [0] * (float)p.get (2 * i, 0) [0];
+										a += reference_float[(2 * reference_cols) * i] * reference_float[(2 * reference_cols) * i] +
+											reference_float[((2 * reference_cols) * i) + 1] * reference_float[((2 * reference_cols) * i) + 1];
+										b += reference_float[(2 * reference_cols) * i] * p_float[(2 * p_cols ) * i] +
+											reference_float[((2 * reference_cols) * i) + 1] * p_float[((2 * p_cols) * i) + 1];
+										c += reference_float[(2 * reference_cols) * i] * p_float[((2 * p_cols) * i) + 1] -
+											reference_float[((2 * reference_cols) * i) + 1] * p_float[(2 * p_cols) * i];
 								}
 								b /= a;
 								c /= a;
@@ -156,10 +206,11 @@ namespace OpenCVFaceTracker
 		
 						IList data_json = (IList)reference_json ["data"];
 						float[] data = new float[reference.rows () * reference.cols ()];
-						for (int i = 0; i < data_json.Count; i++) {
+						int count = data_json.Count;
+						for (int i = 0; i < count; i++) {
 								data [i] = (float)(double)data_json [i];
 						}
-						reference.put (0, 0, data);
+						Utils.copyToMat(data, reference);
 //				Debug.Log ("reference dump " + reference.dump ());
 		
 		

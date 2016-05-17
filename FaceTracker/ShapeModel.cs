@@ -47,6 +47,11 @@ namespace OpenCVFaceTracker
 										if (weight.rows () != n) {
 												Debug.Log ("Invalid weighting matrix");
 										}
+
+										float[] weight_float = new float[weight.total()];
+										Utils.copyFromMat<float>(weight, weight_float);
+										int weight_cols = weight.cols();
+
 										int K = V.cols ();
 										using (Mat H = Mat.zeros (K, K, CvType.CV_32F))
 										using (Mat g = Mat.zeros (K, 1, CvType.CV_32F)) {
@@ -56,7 +61,7 @@ namespace OpenCVFaceTracker
 														using (Mat tmpMat2 = new Mat ())
 														using (Mat tmpMat3 = new Mat ()) {
 
-																float w = (float)weight.get (i, 0) [0];
+																float w = weight_float[i * weight_cols];
 												
 																Core.multiply (v.t (), new Scalar (w), tmpMat1);
 												
@@ -80,10 +85,15 @@ namespace OpenCVFaceTracker
 				{
 						using (Mat s = new Mat ()) {
 								Core.gemm (V, p, 1, new Mat (), 0, s);
+
+								float[] s_float = new float[s.total()];
+								Utils.copyFromMat<float>(s, s_float);
+								int s_cols = s.cols();
+
 								int n = s.rows () / 2;
 								Point[] pts = new Point[n];
 								for (int i = 0; i < n; i++) {
-										pts [i] = new Point (s.get (2 * i, 0) [0], s.get (2 * i + 1, 0) [0]);
+										pts[i] = new Point(s_float[(2 * s_cols) * i], s_float[((2 * s_cols) * i) + 1]);
 								}
 				
 								return pts;
@@ -92,19 +102,30 @@ namespace OpenCVFaceTracker
 
 				void clamp (float c)
 				{
-						double scale = p.get (0, 0) [0];
-						for (int i = 0; i < e.rows(); i++) {
-								if (e.get (i, 0) [0] < 0)
+
+						float[] p_float = new float[p.total()];
+						Utils.copyFromMat<float>(p, p_float);
+						int p_cols = p.cols();
+			
+						float[] e_float = new float[e.total()];
+						Utils.copyFromMat<float>(e, e_float);
+						int e_cols = e.cols();
+
+						double scale = p_float[0];
+						int rows = e.rows ();
+						for (int i = 0; i < rows; i++) {
+								if (e_float[i * e_cols] < 0)
 										continue;
-								float v = c * (float)Math.Sqrt (e.get (i, 0) [0]);
-								if (Math.Abs (p.get (i, 0) [0] / scale) > v) {
-										if (p.get (i, 0) [0] > 0) {
-												p.put (i, 0, v * scale);
+								float v = c * (float)Math.Sqrt(e_float[i * e_cols]);
+								if (Math.Abs(p_float[i * p_cols] / scale) > v) {
+										if (p_float[i * p_cols] > 0) {
+												p_float[i * p_cols] = (float)(v * scale);
 										} else {
-												p.put (i, 0, -v * scale);
+												p_float[i * p_cols] = (float)(-v * scale);
 										}
 								}
 						}
+						Utils.copyToMat(p_float, p);
 				}
 
 				public void read (object root_json)
@@ -120,7 +141,7 @@ namespace OpenCVFaceTracker
 						for (int i = 0; i < V_data_json.Count; i++) {
 								V_data [i] = (float)(double)V_data_json [i];
 						}
-						V.put (0, 0, V_data);
+						Utils.copyToMat(V_data, V);
 //				Debug.Log ("V dump " + V.dump ());
 		
 		
@@ -134,7 +155,7 @@ namespace OpenCVFaceTracker
 						for (int i = 0; i < e_data_json.Count; i++) {
 								e_data [i] = (float)(double)e_data_json [i];
 						}
-						e.put (0, 0, e_data);
+						Utils.copyToMat(e_data, e);
 //				Debug.Log ("e dump " + e.dump ());
 		
 		
@@ -148,7 +169,7 @@ namespace OpenCVFaceTracker
 						for (int i = 0; i < C_data_json.Count; i++) {
 								C_data [i] = (int)(long)C_data_json [i];
 						}
-						C.put (0, 0, C_data);
+						Utils.copyToMat(C_data, C);
 //				Debug.Log ("C dump " + C.dump ());
 				
 		

@@ -62,15 +62,18 @@ namespace OpenCVFaceTracker
 		
 						List<Point[]> points = new List<Point[]> (R.Count);
 		
+						int n = reference.rows() / 2;
+						float[] reference_float = new float[reference.total()];
+						Utils.copyFromMat<float>(reference, reference_float);
+
 						foreach (var r in R) {
 			
 								Vector3 scale = detector_offset * r.width;
-								int n = reference.rows () / 2;
 								Point[] p = new Point[n];
 								for (int i = 0; i < n; i++) {
 										p [i] = new Point ();
-										p [i].x = scale.z * reference.get (2 * i, 0) [0] + r.x + 0.5 * r.width + scale.x;
-										p [i].y = scale.z * reference.get (2 * i + 1, 0) [0] + r.y + 0.5 * r.height + scale.y;
+										p[i].x = scale.z * reference_float[2 * i] + r.x + 0.5 * r.width + scale.x;
+										p[i].y = scale.z * reference_float[(2 * i) + 1] + r.y + 0.5 * r.height + scale.y;
 								}
 			
 								points.Add (p);
@@ -102,7 +105,7 @@ namespace OpenCVFaceTracker
 						for (int i = 0; i < data_json.Count; i++) {
 								data [i] = (float)(double)data_json [i];
 						}
-						reference.put (0, 0, data);
+						Utils.copyToMat(data, reference);
 //				Debug.Log ("reference dump " + reference.dump ());
 		
 						detector = new CascadeClassifier (Utils.getFilePath (detector_fname));
