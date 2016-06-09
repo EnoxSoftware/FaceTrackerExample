@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+using System.Collections.Generic;
+using UnityEngine.UI;
+
 #if UNITY_5_3
 using UnityEngine.SceneManagement;
 #endif
@@ -15,6 +18,16 @@ namespace FaceTrackerSample
 		[RequireComponent(typeof(WebCamTextureToMatHelper))]
 		public class WebCamTextureFaceTrackerSample : MonoBehaviour
 		{
+
+				/// <summary>
+				/// The auto reset mode. if ture, Only if face is detected in each frame, face is tracked.
+				/// </summary>
+				public bool autoResetMode;
+
+				/// <summary>
+				/// The auto reset mode toggle.
+				/// </summary>
+				public Toggle autoResetModeToggle;
 		
 				/// <summary>
 				/// The colors.
@@ -61,6 +74,8 @@ namespace FaceTrackerSample
 
 						webCamTextureToMatHelper = gameObject.GetComponent<WebCamTextureToMatHelper> ();
 						webCamTextureToMatHelper.Init ();
+
+						autoResetModeToggle.isOn = autoResetMode;
 				}
 
 				/// <summary>
@@ -127,10 +142,10 @@ namespace FaceTrackerSample
 								//convert image to greyscale
 								Imgproc.cvtColor (rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
 										
-										
-								if (faceTracker.getPoints ().Count <= 0) {
-										Debug.Log ("detectFace");
 											
+								if (autoResetMode || faceTracker.getPoints ().Count <= 0) {
+//										Debug.Log ("detectFace");
+
 										//convert image to greyscale
 										using (Mat equalizeHistMat = new Mat ()) 
 										using (MatOfRect faces = new MatOfRect ()) {
@@ -141,33 +156,57 @@ namespace FaceTrackerSample
 												//														                           | Objdetect.CASCADE_FIND_BIGGEST_OBJECT
 														| Objdetect.CASCADE_SCALE_IMAGE, new OpenCVForUnity.Size (equalizeHistMat.cols () * 0.15, equalizeHistMat.cols () * 0.15), new Size ());
 												
-												
-												
 												if (faces.rows () > 0) {
-														Debug.Log ("faces " + faces.dump ());
-														//add initial face points from MatOfRect
-														faceTracker.addPoints (faces);
-													
+//												Debug.Log ("faces " + faces.dump ());
+
+														List<OpenCVForUnity.Rect> rectsList = faces.toList ();
+														List<Point[]> pointsList = faceTracker.getPoints ();
+
+														if (autoResetMode) {
+																//add initial face points from MatOfRect
+																if (pointsList.Count <= 0) {
+																		faceTracker.addPoints (faces);
+//																		Debug.Log ("reset faces ");
+																} else {
+														
+																		for (int i = 0; i < rectsList.Count; i++) {
+														
+																				OpenCVForUnity.Rect trackRect = new OpenCVForUnity.Rect (rectsList [i].x + rectsList [i].width / 3, rectsList [i].y + rectsList [i].height / 2, rectsList [i].width / 3, rectsList [i].height / 3);
+																				//It determines whether nose point has been included in trackRect.										
+																				if (i < pointsList.Count && !trackRect.contains (pointsList [i] [67])) {
+																						rectsList.RemoveAt (i);
+																						pointsList.RemoveAt (i);
+//																						Debug.Log ("remove " + i);
+																				}
+																				Imgproc.rectangle (rgbaMat, new Point (trackRect.x, trackRect.y), new Point (trackRect.x + trackRect.width, trackRect.y + trackRect.height), new Scalar (0, 0, 255, 255), 2);
+																		}
+																}
+														} else {
+																faceTracker.addPoints (faces);
+														}
 														//draw face rect
-														OpenCVForUnity.Rect[] rects = faces.toArray ();
-														for (int i = 0; i < rects.Length; i++) {
+														for (int i = 0; i < rectsList.Count; i++) {
 																#if OPENCV_2
-								Core.rectangle (rgbaMat, new Point (rects [i].x, rects [i].y), new Point (rects [i].x + rects [i].width, rects [i].y + rects [i].height), new Scalar (255, 0, 0, 255), 2);
+								Core.rectangle (rgbaMat, new Point (rectsList [i].x, rectsList [i].y), new Point (rectsList [i].x + rectsLIst [i].width, rectsList [i].y + rectsList [i].height), new Scalar (255, 0, 0, 255), 2);
 																#else
-																Imgproc.rectangle (rgbaMat, new Point (rects [i].x, rects [i].y), new Point (rects [i].x + rects [i].width, rects [i].y + rects [i].height), new Scalar (255, 0, 0, 255), 2);
+																Imgproc.rectangle (rgbaMat, new Point (rectsList [i].x, rectsList [i].y), new Point (rectsList [i].x + rectsList [i].width, rectsList [i].y + rectsList [i].height), new Scalar (255, 0, 0, 255), 2);
 																#endif
 														}
 													
-												}
 												
+												} else {
+														if (autoResetMode) {
+																faceTracker.reset ();
+														}
+												}
 										}
 											
 								}
-										
-										
+
 								//track face points.if face points <= 0, always return false.
 								if (faceTracker.track (grayMat, faceTrackerParams))
 										faceTracker.draw (rgbaMat, new Scalar (255, 0, 0, 255), new Scalar (0, 255, 0, 255));
+										
 										
 								#if OPENCV_2
 				Core.putText (rgbaMat, "'Tap' or 'Space Key' to Reset", new Point (5, rgbaMat.rows () - 5), Core.FONT_HERSHEY_SIMPLEX, 0.8, new Scalar (255, 255, 255, 255), 2, Core.LINE_AA, false);
@@ -241,7 +280,17 @@ namespace FaceTrackerSample
 						webCamTextureToMatHelper.Init (null, webCamTextureToMatHelper.requestWidth, webCamTextureToMatHelper.requestHeight, !webCamTextureToMatHelper.requestIsFrontFacing);
 				}
 				
-				
+				/// <summary>
+				/// Raises the change auto reset mode toggle event.
+				/// </summary>
+				public void OnChangeAutoResetModeToggle ()
+				{
+						if (autoResetModeToggle.isOn) {
+								autoResetMode = true;
+						} else {
+								autoResetMode = false;
+						}
+				}
 				
 		}
 }

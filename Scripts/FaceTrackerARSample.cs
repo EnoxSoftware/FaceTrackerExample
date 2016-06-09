@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+using System.Collections.Generic;
+using UnityEngine.UI;
+
 #if UNITY_5_3
 using UnityEngine.SceneManagement;
 #endif
@@ -17,6 +20,16 @@ namespace FaceTrackerSample
 		[RequireComponent(typeof(WebCamTextureToMatHelper))]
 		public class FaceTrackerARSample : MonoBehaviour
 		{
+				/// <summary>
+				/// The auto reset mode. if ture, Only if face is detected in each frame, face is tracked.
+				/// </summary>
+				public bool autoResetMode;
+
+				/// <summary>
+				/// The auto reset mode toggle.
+				/// </summary>
+				public Toggle autoResetModeToggle;
+
 				/// <summary>
 				/// The should draw face points.
 				/// </summary>
@@ -198,11 +211,11 @@ namespace FaceTrackerSample
 						objectPoints = new MatOfPoint3f (new Point3 (-31, 72, 86),//l eye
 			                                              new Point3 (31, 72, 86),//r eye
 			                                              new Point3 (0, 40, 114),//nose
-			                                              new Point3 (-23, 19, 76),//l mouse
-			                                              new Point3 (23, 19, 76)//r mouse
-			                                              //		                                              	                                              ,
-			                                              //		                                              	                                              new Point3 (-70, 60, -9),//l ear
-			                                              //		                                              	                                              new Point3 (70, 60, -9)//r ear
+			                                 new Point3 (-20, 15, 90),//l mouse
+			                                 new Point3 (20, 15, 90)//r mouse
+//			                                              		                                              	                                              ,
+//			                                              		                                              	                                              new Point3 (-70, 60, -9),//l ear
+//			                                              		                                              	                                              new Point3 (70, 60, -9)//r ear
 						);
 						imagePoints = new MatOfPoint2f ();
 						rvec = new Mat ();
@@ -216,6 +229,8 @@ namespace FaceTrackerSample
 
 						webCamTextureToMatHelper = gameObject.GetComponent<WebCamTextureToMatHelper> ();
 						webCamTextureToMatHelper.Init ();
+
+						autoResetModeToggle.isOn = autoResetMode;
 				}
 
 				/// <summary>
@@ -359,8 +374,8 @@ namespace FaceTrackerSample
 								Imgproc.cvtColor (rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
 										
 										
-								if (faceTracker.getPoints ().Count <= 0) {
-										Debug.Log ("detectFace");
+								if (autoResetMode || faceTracker.getPoints ().Count <= 0) {
+//										Debug.Log ("detectFace");
 											
 										//convert image to greyscale
 										using (Mat equalizeHistMat = new Mat ()) 
@@ -375,18 +390,52 @@ namespace FaceTrackerSample
 												
 												
 												if (faces.rows () > 0) {
-														Debug.Log ("faces " + faces.dump ());
-														//add initial face points from MatOfRect
-														faceTracker.addPoints (faces);
-													
+//												Debug.Log ("faces " + faces.dump ());
+
+														List<OpenCVForUnity.Rect> rectsList = faces.toList ();
+														List<Point[]> pointsList = faceTracker.getPoints ();
+						
+														if (autoResetMode) {
+																//add initial face points from MatOfRect
+																if (pointsList.Count <= 0) {
+																		faceTracker.addPoints (faces);							
+//																		Debug.Log ("reset faces ");
+																} else {
+							
+																		for (int i = 0; i < rectsList.Count; i++) {
+								
+																				OpenCVForUnity.Rect trackRect = new OpenCVForUnity.Rect (rectsList [i].x + rectsList [i].width / 3, rectsList [i].y + rectsList [i].height / 2, rectsList [i].width / 3, rectsList [i].height / 3);
+																				//It determines whether nose point has been included in trackRect.										
+																				if (i < pointsList.Count && !trackRect.contains (pointsList [i] [67])) {
+																						rectsList.RemoveAt (i);
+																						pointsList.RemoveAt (i);
+//																						Debug.Log ("remove " + i);
+																				}
+																				Imgproc.rectangle (rgbaMat, new Point (trackRect.x, trackRect.y), new Point (trackRect.x + trackRect.width, trackRect.y + trackRect.height), new Scalar (0, 0, 255, 255), 2);
+																		}
+																}
+														} else {
+																faceTracker.addPoints (faces);
+														}
+
 														//draw face rect
-														OpenCVForUnity.Rect[] rects = faces.toArray ();
-														for (int i = 0; i < rects.Length; i++) {
+														for (int i = 0; i < rectsList.Count; i++) {
 																#if OPENCV_2
-								Core.rectangle (rgbaMat, new Point (rects [i].x, rects [i].y), new Point (rects [i].x + rects [i].width, rects [i].y + rects [i].height), new Scalar (255, 0, 0, 255), 2);
+								Core.rectangle (rgbaMat, new Point (rectsLIst [i].x, rectsList [i].y), new Point (rectsList [i].x + rectsList [i].width, rectsList [i].y + rectsList [i].height), new Scalar (255, 0, 0, 255), 2);
 																#else
-																Imgproc.rectangle (rgbaMat, new Point (rects [i].x, rects [i].y), new Point (rects [i].x + rects [i].width, rects [i].y + rects [i].height), new Scalar (255, 0, 0, 255), 2);
+																Imgproc.rectangle (rgbaMat, new Point (rectsList [i].x, rectsList [i].y), new Point (rectsList [i].x + rectsList [i].width, rectsList [i].y + rectsList [i].height), new Scalar (255, 0, 0, 255), 2);
 																#endif
+														}
+
+												} else {
+														if (autoResetMode) {
+																faceTracker.reset ();
+						
+																rightEye.SetActive (false);
+																leftEye.SetActive (false);
+																head.SetActive (false);
+																mouth.SetActive (false);
+																axes.SetActive (false);
 														}
 												}
 												
@@ -427,9 +476,9 @@ namespace FaceTrackerSample
 													points [67],//nose
 													points [48],//l mouth
 													points [54] //r mouth
-													//							,
-													//											points [1],//l ear
-													//											points [13]//r ear
+//																				,
+//																								points [0],//l ear
+//																								points [14]//r ear
 												);
 												
 												
@@ -619,6 +668,9 @@ namespace FaceTrackerSample
 						webCamTextureToMatHelper.Init (null, webCamTextureToMatHelper.requestWidth, webCamTextureToMatHelper.requestHeight, !webCamTextureToMatHelper.requestIsFrontFacing);
 				}
 				
+				/// <summary>
+				/// Raises the draw face points button event.
+				/// </summary>
 				public void OnDrawFacePointsButton ()
 				{
 						if (shouldDrawFacePoints) {
@@ -628,6 +680,9 @@ namespace FaceTrackerSample
 						}
 				}
 				
+				/// <summary>
+				/// Raises the draw axes button event.
+				/// </summary>
 				public void OnDrawAxesButton ()
 				{
 						if (shouldDrawAxes) {
@@ -638,6 +693,9 @@ namespace FaceTrackerSample
 						}
 				}
 				
+				/// <summary>
+				/// Raises the draw head button event.
+				/// </summary>
 				public void OnDrawHeadButton ()
 				{
 						if (shouldDrawHead) {
@@ -648,6 +706,9 @@ namespace FaceTrackerSample
 						}
 				}
 
+				/// <summary>
+				/// Raises the draw effects button event.
+				/// </summary>
 				public void OnDrawEffectsButton ()
 				{
 						if (shouldDrawEffects) {
@@ -657,6 +718,18 @@ namespace FaceTrackerSample
 								mouth.SetActive (false);
 						} else {
 								shouldDrawEffects = true;
+						}
+				}
+
+				/// <summary>
+				/// Raises the change auto reset mode toggle event.
+				/// </summary>
+				public void OnChangeAutoResetModeToggle ()
+				{
+						if (autoResetModeToggle.isOn) {
+								autoResetMode = true;
+						} else {
+								autoResetMode = false;
 						}
 				}
 
