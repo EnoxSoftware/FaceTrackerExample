@@ -3,7 +3,7 @@ FaceTracker Sample
 
 Overview
 -----
-https://www.assetstore.unity3d.com/#!/content/35284
+<https://www.assetstore.unity3d.com/#!/content/35284>
 
 Demo Video
 -----
