@@ -1,4 +1,4 @@
-FaceTracker Sample
+FaceTracker Example
 ====================
 
 Overview
@@ -11,11 +11,11 @@ Demo Video
 
 Demo Application
 -----
-<https://play.google.com/store/apps/details?id=com.enoxsoftware.facetrackersample>
+<https://play.google.com/store/apps/details?id=com.enoxsoftware.facetrackerexample>
 
 Manual
 -----
-[ReadMe.pdf](ReadMe.pdf)
+[ReadMe.pdf](/Assets/FaceTrackerExample/ReadMe.pdf)
 
 
 
