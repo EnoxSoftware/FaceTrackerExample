@@ -41,7 +41,7 @@ namespace OpenCVFaceTracker
             using (Mat s = (new MatOfPoint2f (pts)).reshape (1, 2 * n))
             { //point set to vector format
 
-                if (weight.empty())
+                if (weight.total() == 0)
                 {
                     Core.gemm(V.t(), s, 1, new Mat(), 0, p);     //simple projection
 

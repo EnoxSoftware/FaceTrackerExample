@@ -292,10 +292,10 @@ namespace FaceTrackerExample
 
             cascade = new CascadeClassifier();
             cascade.load(haarcascade_frontalface_alt_xml_filepath);
-            if (cascade.empty())
-            {
-                Debug.LogError("cascade file is not loaded.Please copy from “FaceTrackerExample/StreamingAssets/” to “Assets/StreamingAssets/” folder. ");
-            }
+//            if (cascade.empty())
+//            {
+//                Debug.LogError("cascade file is not loaded.Please copy from “FaceTrackerExample/StreamingAssets/” to “Assets/StreamingAssets/” folder. ");
+//            }
 
 
 
