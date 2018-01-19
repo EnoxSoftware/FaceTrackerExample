@@ -234,6 +234,9 @@ namespace FaceTrackerExample
         // Use this for initialization
         void Start()
         {
+            webCamTextureToMatHelper = gameObject.GetComponent<WebCamTextureToMatHelper>();
+
+
             isShowingFacePointsToggle.isOn = isShowingFacePoints;
             isShowingAxesToggle.isOn = isShowingAxes;
             isShowingHeadToggle.isOn = isShowingHead;
@@ -272,10 +275,10 @@ namespace FaceTrackerExample
         {
             //set 3d face object points.
             objectPoints = new MatOfPoint3f(new Point3(-31, 72, 86),//l eye
-                                                          new Point3(31, 72, 86),//r eye
-                                                          new Point3(0, 40, 114),//nose
-                                             new Point3(-20, 15, 90),//l mouse
-                                             new Point3(20, 15, 90)//r mouse
+                new Point3(31, 72, 86),//r eye
+                new Point3(0, 40, 114),//nose
+                new Point3(-20, 15, 90),//l mouse
+                new Point3(20, 15, 90)//r mouse
 //                                                                                                                                                            ,
 //                                                                                                                                                            new Point3 (-70, 60, -9),//l ear
 //                                                                                                                                                            new Point3 (70, 60, -9)//r ear
@@ -299,18 +302,17 @@ namespace FaceTrackerExample
 
 
 
-            webCamTextureToMatHelper = gameObject.GetComponent<WebCamTextureToMatHelper>();
-            webCamTextureToMatHelper.Init();
+            webCamTextureToMatHelper.Initialize();
 
 
         }
 
         /// <summary>
-        /// Raises the web cam texture to mat helper inited event.
+        /// Raises the webcam texture to mat helper initialized event.
         /// </summary>
-        public void OnWebCamTextureToMatHelperInited()
+        public void OnWebCamTextureToMatHelperInitialized()
         {
-            Debug.Log("OnWebCamTextureToMatHelperInited");
+            Debug.Log("OnWebCamTextureToMatHelperInitialized");
             
             Mat webCamTextureMat = webCamTextureToMatHelper.GetMat();
 
@@ -424,9 +426,9 @@ namespace FaceTrackerExample
             mouth.SetActive(false);
             
         }
-        
+
         /// <summary>
-        /// Raises the web cam texture to mat helper disposed event.
+        /// Raises the webcam texture to mat helper disposed event.
         /// </summary>
         public void OnWebCamTextureToMatHelperDisposed()
         {
@@ -437,6 +439,15 @@ namespace FaceTrackerExample
             grayMat.Dispose();
             camMatrix.Dispose();
             distCoeffs.Dispose();
+        }
+
+        /// <summary>
+        /// Raises the webcam texture to mat helper error occurred event.
+        /// </summary>
+        /// <param name="errorCode">Error code.</param>
+        public void OnWebCamTextureToMatHelperErrorOccurred(WebCamTextureToMatHelper.ErrorCode errorCode)
+        {
+            Debug.Log("OnWebCamTextureToMatHelperErrorOccurred " + errorCode);
         }
 
         // Update is called once per frame
@@ -458,15 +469,15 @@ namespace FaceTrackerExample
 //                                      Debug.Log ("detectFace");
                                             
                     //convert image to greyscale
-                    using (Mat equalizeHistMat = new Mat ()) 
-                    using (MatOfRect faces = new MatOfRect ())
+                    using (Mat equalizeHistMat = new Mat())
+                    using (MatOfRect faces = new MatOfRect())
                     {
                                                 
                         Imgproc.equalizeHist(grayMat, equalizeHistMat);
                                                 
                         cascade.detectMultiScale(equalizeHistMat, faces, 1.1f, 2, 0
-                            | Objdetect.CASCADE_FIND_BIGGEST_OBJECT
-                            | Objdetect.CASCADE_SCALE_IMAGE, new OpenCVForUnity.Size(equalizeHistMat.cols() * 0.15, equalizeHistMat.cols() * 0.15), new Size());
+                        | Objdetect.CASCADE_FIND_BIGGEST_OBJECT
+                        | Objdetect.CASCADE_SCALE_IMAGE, new OpenCVForUnity.Size(equalizeHistMat.cols() * 0.15, equalizeHistMat.cols() * 0.15), new Size());
                                                 
                                                 
                                                 
@@ -564,11 +575,11 @@ namespace FaceTrackerExample
                                                 
                                                 
                         imagePoints.fromArray(
-                                                    points [31],//l eye
-                                                    points [36],//r eye
-                                                    points [67],//nose
-                                                    points [48],//l mouth
-                                                    points [54] //r mouth
+                            points [31],//l eye
+                            points [36],//r eye
+                            points [67],//nose
+                            points [48],//l mouth
+                            points [54] //r mouth
 //                                                                              ,
 //                                                                                              points [0],//l ear
 //                                                                                              points [14]//r ear
@@ -579,7 +590,7 @@ namespace FaceTrackerExample
                                                 
                         bool isRefresh = false;
                                                 
-                        if (tvec.get(2, 0) [0] > 0 && tvec.get(2, 0) [0] < 1200 * ((float)rgbaMat.cols() / (float)webCamTextureToMatHelper.requestWidth))
+                        if (tvec.get(2, 0) [0] > 0 && tvec.get(2, 0) [0] < 1200 * ((float)rgbaMat.cols() / (float)webCamTextureToMatHelper.requestedWidth))
                         {
                                                     
                             isRefresh = true;
@@ -597,13 +608,13 @@ namespace FaceTrackerExample
                                                     
                                                     
                             //filter Rvec Noise.
-                            using (Mat absDiffRvec = new Mat ())
+                            using (Mat absDiffRvec = new Mat())
                             {
                                 Core.absdiff(rvec, oldRvec, absDiffRvec);
                                                         
                                 //              Debug.Log ("absDiffRvec " + absDiffRvec.dump());
                                                         
-                                using (Mat cmpRvec = new Mat ())
+                                using (Mat cmpRvec = new Mat())
                                 {
                                     Core.compare(absDiffRvec, new Scalar(rvecNoiseFilterRange), cmpRvec, Core.CMP_GT);
                                                             
@@ -615,13 +626,13 @@ namespace FaceTrackerExample
                                                     
                                                     
                             //filter Tvec Noise.
-                            using (Mat absDiffTvec = new Mat ())
+                            using (Mat absDiffTvec = new Mat())
                             {
                                 Core.absdiff(tvec, oldTvec, absDiffTvec);
                                                         
                                 //              Debug.Log ("absDiffRvec " + absDiffRvec.dump());
                                                         
-                                using (Mat cmpTvec = new Mat ())
+                                using (Mat cmpTvec = new Mat())
                                 {
                                     Core.compare(absDiffTvec, new Scalar(tvecNoiseFilterRange), cmpTvec, Core.CMP_GT);
                                                             
@@ -647,7 +658,7 @@ namespace FaceTrackerExample
                                 axes.SetActive(true);
                                                     
                                                     
-                            if ((Mathf.Abs((float)(points [48].x - points [56].x)) < Mathf.Abs((float)(points [31].x - points [36].x)) / 2.2 
+                            if ((Mathf.Abs((float)(points [48].x - points [56].x)) < Mathf.Abs((float)(points [31].x - points [36].x)) / 2.2
                                 && Mathf.Abs((float)(points [51].y - points [57].y)) > Mathf.Abs((float)(points [31].x - points [36].x)) / 2.9)
                                 || Mathf.Abs((float)(points [51].y - points [57].y)) > Mathf.Abs((float)(points [31].x - points [36].x)) / 2.7)
                             {
@@ -668,7 +679,7 @@ namespace FaceTrackerExample
                                                     
                             Calib3d.Rodrigues(rvec, rotM);
                                                     
-                            transformationM .SetRow(0, new Vector4((float)rotM.get(0, 0) [0], (float)rotM.get(0, 1) [0], (float)rotM.get(0, 2) [0], (float)tvec.get(0, 0) [0]));
+                            transformationM.SetRow(0, new Vector4((float)rotM.get(0, 0) [0], (float)rotM.get(0, 1) [0], (float)rotM.get(0, 2) [0], (float)tvec.get(0, 0) [0]));
                             transformationM.SetRow(1, new Vector4((float)rotM.get(1, 0) [0], (float)rotM.get(1, 1) [0], (float)rotM.get(1, 2) [0], (float)tvec.get(1, 0) [0]));
                             transformationM.SetRow(2, new Vector4((float)rotM.get(2, 0) [0], (float)rotM.get(2, 1) [0], (float)rotM.get(2, 2) [0], (float)tvec.get(2, 0) [0]));
                             transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
@@ -725,7 +736,7 @@ namespace FaceTrackerExample
             }
                     
         }
-                
+
         /// <summary>
         /// Raises the disable event.
         /// </summary>
@@ -736,19 +747,19 @@ namespace FaceTrackerExample
             if (cascade != null)
                 cascade.Dispose();
         }
-        
+
         /// <summary>
         /// Raises the back button event.
         /// </summary>
         public void OnBackButton()
         {
             #if UNITY_5_3 || UNITY_5_3_OR_NEWER
-            SceneManager.LoadScene ("FaceTrackerExample");
+            SceneManager.LoadScene("FaceTrackerExample");
             #else
             Application.LoadLevel("FaceTrackerExample");
             #endif
         }
-        
+
         /// <summary>
         /// Raises the play button event.
         /// </summary>
@@ -756,7 +767,7 @@ namespace FaceTrackerExample
         {
             webCamTextureToMatHelper.Play();
         }
-        
+
         /// <summary>
         /// Raises the pause button event.
         /// </summary>
@@ -764,7 +775,7 @@ namespace FaceTrackerExample
         {
             webCamTextureToMatHelper.Pause();
         }
-        
+
         /// <summary>
         /// Raises the stop button event.
         /// </summary>
@@ -772,15 +783,15 @@ namespace FaceTrackerExample
         {
             webCamTextureToMatHelper.Stop();
         }
-        
+
         /// <summary>
         /// Raises the change camera button event.
         /// </summary>
         public void OnChangeCameraButton()
         {
-            webCamTextureToMatHelper.Init(null, webCamTextureToMatHelper.requestWidth, webCamTextureToMatHelper.requestHeight, !webCamTextureToMatHelper.requestIsFrontFacing);
+            webCamTextureToMatHelper.Initialize(null, webCamTextureToMatHelper.requestedWidth, webCamTextureToMatHelper.requestedHeight, !webCamTextureToMatHelper.requestedIsFrontFacing);
         }
-                
+
         /// <summary>
         /// Raises the is showing face points toggle event.
         /// </summary>
@@ -794,7 +805,7 @@ namespace FaceTrackerExample
                 isShowingFacePoints = false;
             }
         }
-        
+
         /// <summary>
         /// Raises the is showing axes toggle event.
         /// </summary>
@@ -809,7 +820,7 @@ namespace FaceTrackerExample
                 axes.SetActive(false);
             }
         }
-        
+
         /// <summary>
         /// Raises the is showing head toggle event.
         /// </summary>
@@ -824,7 +835,7 @@ namespace FaceTrackerExample
                 head.SetActive(false);
             }
         }
-        
+
         /// <summary>
         /// Raises the is showin effects toggle event.
         /// </summary>

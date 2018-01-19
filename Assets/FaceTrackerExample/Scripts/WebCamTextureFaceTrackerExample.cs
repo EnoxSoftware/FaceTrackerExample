@@ -73,6 +73,9 @@ namespace FaceTrackerExample
         // Use this for initialization
         void Start()
         {
+            webCamTextureToMatHelper = gameObject.GetComponent<WebCamTextureToMatHelper>();
+
+
             isAutoResetModeToggle.isOn = isAutoResetMode;
 
             #if UNITY_WEBGL && !UNITY_EDITOR
@@ -118,17 +121,16 @@ namespace FaceTrackerExample
 //            }
 
 
-            webCamTextureToMatHelper = gameObject.GetComponent<WebCamTextureToMatHelper>();
-            webCamTextureToMatHelper.Init();
+            webCamTextureToMatHelper.Initialize();
 
         }
 
         /// <summary>
-        /// Raises the web cam texture to mat helper inited event.
+        /// Raises the webcam texture to mat helper initialized event.
         /// </summary>
-        public void OnWebCamTextureToMatHelperInited()
+        public void OnWebCamTextureToMatHelperInitialized()
         {
-            Debug.Log("OnWebCamTextureToMatHelperInited");
+            Debug.Log("OnWebCamTextureToMatHelperInitialized");
             
             Mat webCamTextureMat = webCamTextureToMatHelper.GetMat();
             
@@ -162,9 +164,9 @@ namespace FaceTrackerExample
 
             
         }
-        
+
         /// <summary>
-        /// Raises the web cam texture to mat helper disposed event.
+        /// Raises the webcam texture to mat helper disposed event.
         /// </summary>
         public void OnWebCamTextureToMatHelperDisposed()
         {
@@ -172,6 +174,15 @@ namespace FaceTrackerExample
 
             faceTracker.reset();
             grayMat.Dispose();
+        }
+
+        /// <summary>
+        /// Raises the webcam texture to mat helper error occurred event.
+        /// </summary>
+        /// <param name="errorCode">Error code.</param>
+        public void OnWebCamTextureToMatHelperErrorOccurred(WebCamTextureToMatHelper.ErrorCode errorCode)
+        {
+            Debug.Log("OnWebCamTextureToMatHelperErrorOccurred " + errorCode);
         }
             
         // Update is called once per frame
@@ -192,15 +203,15 @@ namespace FaceTrackerExample
 //                                      Debug.Log ("detectFace");
 
                     //convert image to greyscale
-                    using (Mat equalizeHistMat = new Mat ()) 
-                    using (MatOfRect faces = new MatOfRect ())
+                    using (Mat equalizeHistMat = new Mat())
+                    using (MatOfRect faces = new MatOfRect())
                     {
                                                 
                         Imgproc.equalizeHist(grayMat, equalizeHistMat);
                                                 
                         cascade.detectMultiScale(equalizeHistMat, faces, 1.1f, 2, 0
                         //                                                                                 | Objdetect.CASCADE_FIND_BIGGEST_OBJECT
-                            | Objdetect.CASCADE_SCALE_IMAGE, new OpenCVForUnity.Size(equalizeHistMat.cols() * 0.15, equalizeHistMat.cols() * 0.15), new Size());
+                        | Objdetect.CASCADE_SCALE_IMAGE, new OpenCVForUnity.Size(equalizeHistMat.cols() * 0.15, equalizeHistMat.cols() * 0.15), new Size());
                                                 
                         if (faces.rows() > 0)
                         {
@@ -295,19 +306,19 @@ namespace FaceTrackerExample
             if (cascade != null)
                 cascade.Dispose();
         }
-    
+
         /// <summary>
         /// Raises the back button event.
         /// </summary>
         public void OnBackButton()
         {
             #if UNITY_5_3 || UNITY_5_3_OR_NEWER
-            SceneManager.LoadScene ("FaceTrackerExample");
+            SceneManager.LoadScene("FaceTrackerExample");
             #else
             Application.LoadLevel("FaceTrackerExample");
             #endif
         }
-    
+
         /// <summary>
         /// Raises the play button event.
         /// </summary>
@@ -315,7 +326,7 @@ namespace FaceTrackerExample
         {
             webCamTextureToMatHelper.Play();
         }
-    
+
         /// <summary>
         /// Raises the pause button event.
         /// </summary>
@@ -323,7 +334,7 @@ namespace FaceTrackerExample
         {
             webCamTextureToMatHelper.Pause();
         }
-    
+
         /// <summary>
         /// Raises the stop button event.
         /// </summary>
@@ -331,15 +342,15 @@ namespace FaceTrackerExample
         {
             webCamTextureToMatHelper.Stop();
         }
-    
+
         /// <summary>
         /// Raises the change camera button event.
         /// </summary>
         public void OnChangeCameraButton()
         {
-            webCamTextureToMatHelper.Init(null, webCamTextureToMatHelper.requestWidth, webCamTextureToMatHelper.requestHeight, !webCamTextureToMatHelper.requestIsFrontFacing);
+            webCamTextureToMatHelper.Initialize(null, webCamTextureToMatHelper.requestedWidth, webCamTextureToMatHelper.requestedHeight, !webCamTextureToMatHelper.requestedIsFrontFacing);
         }
-                
+
         /// <summary>
         /// Raises the change auto reset mode toggle event.
         /// </summary>
