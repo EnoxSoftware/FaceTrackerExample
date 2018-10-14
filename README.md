@@ -3,7 +3,11 @@ FaceTracker Example
 
 Overview
 -----
-<https://www.assetstore.unity3d.com/#!/content/35284>
+[https://assetstore.unity.com/packages/templates/tutorials/facetracker-example-35284](https://assetstore.unity.com/packages/templates/tutorials/facetracker-example-35284?aid=1011l4ehR)
+
+Environment
+-----
+[OpenCVForUnity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR)  
 
 Demo Video
 -----
