@@ -1,38 +1,30 @@
 ﻿using UnityEngine;
-using System.Collections;
-
-#if UNITY_5_3 || UNITY_5_3_OR_NEWER
 using UnityEngine.SceneManagement;
-#endif
+using System.Collections;
 
 namespace FaceTrackerExample
 {
-
     /// <summary>
-    /// Show license.
+    /// Show License
     /// </summary>
     public class ShowLicense : MonoBehaviour
     {
         
         // Use this for initialization
-        void Start()
+        void Start ()
         {
             
         }
         
         // Update is called once per frame
-        void Update()
+        void Update ()
         {
             
         }
 
-        public void OnBackButton()
+        public void OnBackButton ()
         {
-            #if UNITY_5_3 || UNITY_5_3_OR_NEWER
             SceneManager.LoadScene ("FaceTrackerExample");
-            #else
-            Application.LoadLevel("FaceTrackerExample");
-            #endif
         }
     }
 }
