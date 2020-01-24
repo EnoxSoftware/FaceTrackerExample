@@ -5,6 +5,7 @@ using MiniJSON;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.UtilsModule;
 
 #if UNITY_WSA
 using UnityEngine.Windows;
@@ -91,7 +92,7 @@ namespace OpenCVFaceTracker
 
             Point[] c = new Point[smodel.C.rows ()];
             int[] data = new int[c.Length * 2];
-            Utils.copyFromMat<int> (smodel.C, data);
+            MatUtils.copyFromMat<int> (smodel.C, data);
 
             int len = c.Length;
             for (int i = 0; i < len; i++) {
@@ -142,7 +143,7 @@ namespace OpenCVFaceTracker
         {
 
             int[] smodel_C_int = new int[smodel.C.total ()];
-            Utils.copyFromMat<int> (smodel.C, smodel_C_int);
+            MatUtils.copyFromMat<int> (smodel.C, smodel_C_int);
 
             foreach (var point in points) {
                 int n = point.Length;
@@ -194,7 +195,7 @@ namespace OpenCVFaceTracker
                 using (Mat weight = new Mat (n, 1, CvType.CV_32F)) using (Mat weight_sort = new Mat (n, 1, CvType.CV_32F)) {
 
                     float[] weight_float = new float[weight.total ()];
-                    Utils.copyFromMat<float> (weight, weight_float);
+                    MatUtils.copyFromMat<float> (weight, weight_float);
                     float[] weight_sort_float = new float[weight_sort.total ()];
 
                     Point[] pts_old = pts;
@@ -205,12 +206,12 @@ namespace OpenCVFaceTracker
                                 weight_float [i] = (float)Core.norm (tmpMat);
                             }
                         }
-                        Utils.copyToMat (weight_float, weight);
+                        MatUtils.copyToMat (weight_float, weight);
 
                         Core.sort (weight, weight_sort, Core.SORT_EVERY_COLUMN | Core.SORT_ASCENDING);
 
 
-                        Utils.copyFromMat<float> (weight_sort, weight_sort_float);
+                        MatUtils.copyFromMat<float> (weight_sort, weight_sort_float);
                         double var = 1.4826 * weight_sort_float [n / 2];
 
 

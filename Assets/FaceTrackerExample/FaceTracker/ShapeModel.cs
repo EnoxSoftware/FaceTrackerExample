@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
+using OpenCVForUnity.UtilsModule;
 
 namespace OpenCVFaceTracker
 {
@@ -50,7 +51,7 @@ namespace OpenCVFaceTracker
                     }
 
                     float[] weight_float = new float[weight.total ()];
-                    Utils.copyFromMat<float> (weight, weight_float);
+                    MatUtils.copyFromMat<float> (weight, weight_float);
                     int weight_cols = weight.cols ();
 
                     int K = V.cols ();
@@ -84,7 +85,7 @@ namespace OpenCVFaceTracker
                 Core.gemm (V, p, 1, new Mat (), 0, s);
 
                 float[] s_float = new float[s.total ()];
-                Utils.copyFromMat<float> (s, s_float);
+                MatUtils.copyFromMat<float> (s, s_float);
                 int s_cols = s.cols ();
 
                 int n = s.rows () / 2;
@@ -101,11 +102,11 @@ namespace OpenCVFaceTracker
         {
 
             float[] p_float = new float[p.total ()];
-            Utils.copyFromMat<float> (p, p_float);
+            MatUtils.copyFromMat<float> (p, p_float);
             int p_cols = p.cols ();
             
             float[] e_float = new float[e.total ()];
-            Utils.copyFromMat<float> (e, e_float);
+            MatUtils.copyFromMat<float> (e, e_float);
             int e_cols = e.cols ();
 
             double scale = p_float [0];
@@ -121,7 +122,7 @@ namespace OpenCVFaceTracker
                     }
                 }
             }
-            Utils.copyToMat (p_float, p);
+            MatUtils.copyToMat (p_float, p);
         }
 
         public void read (object root_json)
@@ -137,7 +138,7 @@ namespace OpenCVFaceTracker
             for (int i = 0; i < V_data_json.Count; i++) {
                 V_data [i] = (float)(double)V_data_json [i];
             }
-            Utils.copyToMat (V_data, V);
+            MatUtils.copyToMat (V_data, V);
 //              Debug.Log ("V dump " + V.dump ());
         
         
@@ -151,7 +152,7 @@ namespace OpenCVFaceTracker
             for (int i = 0; i < e_data_json.Count; i++) {
                 e_data [i] = (float)(double)e_data_json [i];
             }
-            Utils.copyToMat (e_data, e);
+            MatUtils.copyToMat (e_data, e);
 //              Debug.Log ("e dump " + e.dump ());
         
         
@@ -165,7 +166,7 @@ namespace OpenCVFaceTracker
             for (int i = 0; i < C_data_json.Count; i++) {
                 C_data [i] = (int)(long)C_data_json [i];
             }
-            Utils.copyToMat (C_data, C);
+            MatUtils.copyToMat (C_data, C);
 //              Debug.Log ("C dump " + C.dump ());
         
             p = Mat.zeros (e.rows (), 1, CvType.CV_32F);

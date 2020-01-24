@@ -3,6 +3,7 @@ using System.Collections;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.UnityUtils;
+using OpenCVForUnity.UtilsModule;
 
 namespace OpenCVFaceTracker
 {
@@ -84,7 +85,7 @@ namespace OpenCVFaceTracker
             for (int i = 0; i < P_data_json.Count; i++) {
                 P_data [i] = (float)(double)P_data_json [i];
             }
-            Utils.copyToMat (P_data, P);
+            MatUtils.copyToMat (P_data, P);
 //              Debug.Log ("P dump " + P.dump ());
         }
     }

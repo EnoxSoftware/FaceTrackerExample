@@ -5,6 +5,7 @@ using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ObjdetectModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.UnityUtils;
+using OpenCVForUnity.UtilsModule;
 
 namespace OpenCVFaceTracker
 {
@@ -67,7 +68,7 @@ namespace OpenCVFaceTracker
         
             int n = reference.rows () / 2;
             float[] reference_float = new float[reference.total ()];
-            Utils.copyFromMat<float> (reference, reference_float);
+            MatUtils.copyFromMat<float> (reference, reference_float);
 
             foreach (var r in R) {
             
@@ -108,7 +109,7 @@ namespace OpenCVFaceTracker
             for (int i = 0; i < data_json.Count; i++) {
                 data [i] = (float)(double)data_json [i];
             }
-            Utils.copyToMat (data, reference);
+            MatUtils.copyToMat (data, reference);
 //              Debug.Log ("reference dump " + reference.dump ());
         
             detector = new CascadeClassifier (Utils.getFilePath (detector_fname));
