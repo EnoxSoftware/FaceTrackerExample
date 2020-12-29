@@ -1,16 +1,16 @@
-﻿using System;
+﻿using OpenCVFaceTracker;
+using OpenCVForUnity.Calib3dModule;
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.ObjdetectModule;
+using OpenCVForUnity.UnityUtils;
+using OpenCVForUnity.UnityUtils.Helper;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using OpenCVForUnity.CoreModule;
-using OpenCVForUnity.ObjdetectModule;
-using OpenCVForUnity.UnityUtils;
-using OpenCVForUnity.Calib3dModule;
-using OpenCVForUnity.ImgprocModule;
-using OpenCVForUnity.UnityUtils.Helper;
-using OpenCVFaceTracker;
+using UnityEngine.UI;
 
 namespace FaceTrackerExample
 {
@@ -157,14 +157,14 @@ namespace FaceTrackerExample
         Matrix4x4 invertYM;
 
         /// <summary>
-        /// The transformation m.
-        /// </summary>
-        Matrix4x4 transformationM = new Matrix4x4();
-
-        /// <summary>
         /// The invert Z.
         /// </summary>
         Matrix4x4 invertZM;
+
+        /// <summary>
+        /// The transformation m.
+        /// </summary>
+        Matrix4x4 transformationM = new Matrix4x4();
 
         /// <summary>
         /// The ar m.
@@ -231,7 +231,7 @@ namespace FaceTrackerExample
         /// </summary>
         private string haarcascade_frontalface_alt_xml_filepath;
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL
         IEnumerator getFilePath_Coroutine;
 #endif
 
@@ -247,7 +247,7 @@ namespace FaceTrackerExample
             isShowingEffectsToggle.isOn = isShowingEffects;
             isAutoResetModeToggle.isOn = isAutoResetMode;
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL
             getFilePath_Coroutine = GetFilePath();
             StartCoroutine(getFilePath_Coroutine);
 #else
@@ -258,7 +258,7 @@ namespace FaceTrackerExample
 
         }
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL
         private IEnumerator GetFilePath()
         {
             var getFilePathAsync_0_Coroutine = Utils.getFilePathAsync("tracker_model.json", (result) =>
@@ -282,7 +282,8 @@ namespace FaceTrackerExample
         private void Run()
         {
             //set 3d face object points.
-            objectPoints = new MatOfPoint3f(new Point3(-31, 72, 86),//l eye
+            objectPoints = new MatOfPoint3f(
+                new Point3(-31, 72, 86),//l eye
                 new Point3(31, 72, 86),//r eye
                 new Point3(0, 40, 114),//nose
                 new Point3(-20, 15, 90),//l mouse
@@ -290,6 +291,7 @@ namespace FaceTrackerExample
                 new Point3(-70, 60, -9),//l ear
                 new Point3(70, 60, -9)//r ear
             );
+
             imagePoints = new MatOfPoint2f();
             rvec = new Mat();
             tvec = new Mat();
@@ -307,11 +309,6 @@ namespace FaceTrackerExample
             //  Debug.LogError("cascade file is not loaded.Please copy from “FaceTrackerExample/StreamingAssets/” to “Assets/StreamingAssets/” folder. ");
             //}
 
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-            // Avoids the front camera low light issue that occurs in only some Android devices (e.g. Google Pixel, Pixel2).
-            webCamTextureToMatHelper.avoidAndroidFrontCameraLowLightIssue = true;
-#endif
             webCamTextureToMatHelper.Initialize();
         }
 
@@ -455,36 +452,29 @@ namespace FaceTrackerExample
         // Update is called once per frame
         void Update()
         {
-
             if (webCamTextureToMatHelper.IsPlaying() && webCamTextureToMatHelper.DidUpdateThisFrame())
             {
-
                 Mat rgbaMat = webCamTextureToMatHelper.GetMat();
-
 
                 //convert image to greyscale
                 Imgproc.cvtColor(rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
 
-
                 if (isAutoResetMode || faceTracker.getPoints().Count <= 0)
                 {
-                    //                    Debug.Log ("detectFace");
+                    //Debug.Log ("detectFace");
 
                     //convert image to greyscale
                     using (Mat equalizeHistMat = new Mat()) using (MatOfRect faces = new MatOfRect())
                     {
-
                         Imgproc.equalizeHist(grayMat, equalizeHistMat);
 
                         cascade.detectMultiScale(equalizeHistMat, faces, 1.1f, 2, 0
                         | Objdetect.CASCADE_FIND_BIGGEST_OBJECT
                         | Objdetect.CASCADE_SCALE_IMAGE, new Size(equalizeHistMat.cols() * 0.15, equalizeHistMat.cols() * 0.15), new Size());
 
-
-
                         if (faces.rows() > 0)
                         {
-                            //                            Debug.Log ("faces " + faces.dump ());
+                            //Debug.Log ("faces " + faces.dump ());
 
                             List<OpenCVForUnity.CoreModule.Rect> rectsList = faces.toList();
                             List<Point[]> pointsList = faceTracker.getPoints();
@@ -495,21 +485,19 @@ namespace FaceTrackerExample
                                 if (pointsList.Count <= 0)
                                 {
                                     faceTracker.addPoints(faces);
-                                    //                                    Debug.Log ("reset faces ");
+                                    //Debug.Log ("reset faces ");
                                 }
                                 else
                                 {
-
                                     for (int i = 0; i < rectsList.Count; i++)
                                     {
-
                                         OpenCVForUnity.CoreModule.Rect trackRect = new OpenCVForUnity.CoreModule.Rect(rectsList[i].x + rectsList[i].width / 3, rectsList[i].y + rectsList[i].height / 2, rectsList[i].width / 3, rectsList[i].height / 3);
                                         //It determines whether nose point has been included in trackRect.                                      
                                         if (i < pointsList.Count && !trackRect.contains(pointsList[i][67]))
                                         {
                                             rectsList.RemoveAt(i);
                                             pointsList.RemoveAt(i);
-                                            //                                            Debug.Log ("remove " + i);
+                                            //Debug.Log ("remove " + i);
                                         }
                                         Imgproc.rectangle(rgbaMat, new Point(trackRect.x, trackRect.y), new Point(trackRect.x + trackRect.width, trackRect.y + trackRect.height), new Scalar(0, 0, 255, 255), 2);
                                     }
@@ -525,7 +513,6 @@ namespace FaceTrackerExample
                             {
                                 Imgproc.rectangle(rgbaMat, new Point(rectsList[i].x, rectsList[i].y), new Point(rectsList[i].x + rectsList[i].width, rectsList[i].y + rectsList[i].height), new Scalar(255, 0, 0, 255), 2);
                             }
-
                         }
                         else
                         {
@@ -543,7 +530,6 @@ namespace FaceTrackerExample
                     }
                 }
 
-
                 //track face points.if face points <= 0, always return false.
                 if (faceTracker.track(grayMat, faceTrackerParams))
                 {
@@ -551,18 +537,14 @@ namespace FaceTrackerExample
 
                     Imgproc.putText(rgbaMat, "'Tap' or 'Space Key' to Reset", new Point(5, rgbaMat.rows() - 5), Imgproc.FONT_HERSHEY_SIMPLEX, 0.8, new Scalar(255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
 
-
                     Point[] points = faceTracker.getPoints()[0];
-
 
                     if (points.Length > 0)
                     {
-
                         //for (int i = 0; i < points.Length; i++)
                         //{
-                        //  Imgproc.putText(rgbaMat, "" + i, new Point(points [i].x, points [i].y), Imgproc.FONT_HERSHEY_SIMPLEX, 0.3, new Scalar(0, 0, 255, 255), 2, Imgproc.LINE_AA, false);
+                        //    Imgproc.putText(rgbaMat, "" + i, new Point(points[i].x, points[i].y), Imgproc.FONT_HERSHEY_SIMPLEX, 0.3, new Scalar(0, 0, 255, 255), 2, Imgproc.LINE_AA, false);
                         //}
-
 
                         imagePoints.fromArray(
                             points[31],//l eye
@@ -570,10 +552,9 @@ namespace FaceTrackerExample
                             points[67],//nose
                             points[48],//l mouth
                             points[54], //r mouth
-                          points[0],//l ear
-                          points[14]//r ear
+                            points[0],//l ear
+                            points[14]//r ear
                         );
-
 
                         Calib3d.solvePnP(objectPoints, imagePoints, camMatrix, distCoeffs, rvec, tvec);
 
@@ -581,7 +562,6 @@ namespace FaceTrackerExample
 
                         if (tvec.dims() != 0 && tvec.get(2, 0)[0] > 0 && tvec.get(2, 0)[0] < 1200 * ((float)rgbaMat.cols() / (float)webCamTextureToMatHelper.requestedWidth))
                         {
-
                             isRefresh = true;
 
                             if (oldRvec == null)
@@ -594,7 +574,6 @@ namespace FaceTrackerExample
                                 oldTvec = new Mat();
                                 tvec.copyTo(oldTvec);
                             }
-
 
                             //filter Rvec Noise.
                             using (Mat absDiffRvec = new Mat())
@@ -629,12 +608,10 @@ namespace FaceTrackerExample
 
                         if (isRefresh)
                         {
-
                             if (isShowingEffects) rightEye.SetActive(true);
                             if (isShowingEffects) leftEye.SetActive(true);
                             if (isShowingHead) head.SetActive(true);
                             if (isShowingAxes) axes.SetActive(true);
-
 
                             if ((Mathf.Abs((float)(points[48].x - points[56].x)) < Mathf.Abs((float)(points[31].x - points[36].x)) / 2.2
                                 && Mathf.Abs((float)(points[51].y - points[57].y)) > Mathf.Abs((float)(points[31].x - points[36].x)) / 2.9)
@@ -660,14 +637,14 @@ namespace FaceTrackerExample
                             transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
 
                             // right-handed coordinates system (OpenCV) to left-handed one (Unity)
-                            ARM = invertYM * transformationM;
+                            // https://stackoverflow.com/questions/30234945/change-handedness-of-a-row-major-4x4-transformation-matrix
+                            ARM = invertYM * transformationM * invertYM;
 
-                            // Apply Z-axis inverted matrix.
-                            ARM = ARM * invertZM;
+                            // Apply Y-axis and Z-axis refletion matrix. (Adjust the posture of the AR object)
+                            ARM = ARM * invertYM * invertZM;
 
                             if (shouldMoveARCamera)
                             {
-
                                 if (ARGameObject != null)
                                 {
                                     ARM = ARGameObject.transform.localToWorldMatrix * ARM.inverse;
@@ -725,7 +702,7 @@ namespace FaceTrackerExample
 
             if (cascade != null) cascade.Dispose();
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL
             if (getFilePath_Coroutine != null)
             {
                 StopCoroutine(getFilePath_Coroutine);
