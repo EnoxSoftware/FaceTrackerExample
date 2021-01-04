@@ -18,7 +18,7 @@ Demo Application
 - WebGL
 <https://enoxsoftware.github.io/FaceTrackerExample/webgl_example/index.html>
 - Android
-<https://play.google.com/store/apps/details?id=com.enoxsoftware.facetrackerexample>
+[FaceTrackerExample.apk](/FaceTrackerExample.apk)
 
 Manual
 -----
