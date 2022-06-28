@@ -1,4 +1,4 @@
-﻿using OpenCVFaceTracker;
+using OpenCVFaceTracker;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.ObjdetectModule;
