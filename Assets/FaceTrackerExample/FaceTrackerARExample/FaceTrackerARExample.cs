@@ -306,7 +306,7 @@ namespace FaceTrackerExample
             cascade.load(haarcascade_frontalface_alt_xml_filepath);
             //if (cascade.empty())
             //{
-            //  Debug.LogError("cascade file is not loaded.Please copy from “FaceTrackerExample/StreamingAssets/” to “Assets/StreamingAssets/” folder. ");
+            //  Debug.LogError("cascade file is not loaded. The file must exist in the folder “Assets/StreamingAssets/”.");
             //}
 
             webCamTextureToMatHelper.Initialize();

@@ -42,7 +42,9 @@ namespace FaceTrackerExample
             StartCoroutine(getFilePath_Coroutine);
 #else
             tracker_model_json_filepath = Utils.getFilePath("tracker_model.json");
+            Debug.Log(tracker_model_json_filepath);
             haarcascade_frontalface_alt_xml_filepath = Utils.getFilePath("haarcascade_frontalface_alt.xml");
+            Debug.Log(haarcascade_frontalface_alt_xml_filepath);
             Run();
 #endif
         }
@@ -124,7 +126,7 @@ namespace FaceTrackerExample
             | Objdetect.CASCADE_SCALE_IMAGE, new Size(gray.cols() * 0.05, gray.cols() * 0.05), new Size());
 
             Debug.Log("faces " + faces.dump());
-
+            
             if (faces.rows() > 0)
             {
                 //add initial face points from MatOfRect
@@ -134,7 +136,7 @@ namespace FaceTrackerExample
 
             //track face points.if face points <= 0, always return false.
             if (faceTracker.track(imgMat, faceTrackerParams)) faceTracker.draw(imgMat, new Scalar(255, 0, 0, 255), new Scalar(0, 255, 0, 255));
-
+            
 
 
             Texture2D texture = new Texture2D(imgMat.cols(), imgMat.rows(), TextureFormat.RGBA32, false);
